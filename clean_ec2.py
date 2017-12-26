@@ -31,7 +31,7 @@ def do_not_delete(instance):
 def should_delete(instance):
     return not do_not_delete(instance)
 
-print("These instances will be deleted. Since they expired and no do not delete tag")
+print("These instances will be deleted. Since they expired and no do_not_delete tag")
 delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
                     'KeyName': x['KeyName'],
                     'Tags': x.get('Tags', []),
@@ -41,7 +41,7 @@ delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
 
 pprint(delete_instances)
 print("\n\n\n\n")
-print("These are the instances more than 5 days. But not going to delete them, because people tags it:")
+print("These are the instances more than 5 days. But not going to delete them, because people tag them with do_not_delete:")
 
 
 
