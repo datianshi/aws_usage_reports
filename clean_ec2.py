@@ -5,7 +5,7 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 
-FIVE_DAYS_AGO = datetime.now(timezone.utc)
+FIVE_DAYS_AGO = datetime.now(timezone.utc) - timedelta(5)
 
 client = boto3.client('ec2')
 
@@ -32,7 +32,7 @@ def do_not_delete(instance):
 def should_delete(instance):
     return not do_not_delete(instance)
 
-print("These instances will be deleted. Since they expired and no do not delete tag")
+print("These instances will be deleted. Since they expired and no do_not_delete tag")
 delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
                     'KeyName': x['KeyName'],
                     'Tags': x.get('Tags', []),
@@ -43,7 +43,7 @@ delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
 
 pprint(delete_instances)
 print("\n\n\n\n")
-print("These are the instances more than 5 days. But not going to delete them, because people have do_not_delete tag on it:")
+print("These are the instances more than 5 days. But not going to delete them, because people tag them with do_not_delete:")
 
 
 
@@ -67,4 +67,3 @@ for instance in delete_instances:
         InstanceIds = [instance['InstanceId']],
         DryRun=False
 )
-
