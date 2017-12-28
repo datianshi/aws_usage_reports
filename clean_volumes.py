@@ -1,8 +1,8 @@
 import boto3
-import functions
+from functions import aggregate_region_resources
+from functions import get_resource
 from functions import FIVE_DAYS_AGO
-from functools import reduce
-from pprint import pprint
+
 
 #Clean not used volumes
 def get_volumes(region):
@@ -30,6 +30,6 @@ def delete_volume(client, volume):
         DryRun=True
     )
 
-functions.clean_region_resources(delete_volumes, delete_volume)
+functions.clean_region_resources('ec2', delete_volumes, delete_volume)
 
 
