@@ -1,11 +1,7 @@
 import boto3
 import functions
+from functions import TWO_DAYS_AGO
 from pprint import pprint
-from datetime import datetime
-from datetime import timedelta
-from datetime import timezone
-
-FIVE_DAYS_AGO = datetime.now(timezone.utc) - timedelta(5)
 
 client = boto3.client('ec2')
 
@@ -39,7 +35,7 @@ delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
                     'Region': x['Region'],
                     'LaunchTime': x['LaunchTime']},
          filter(should_delete,
-                filter(lambda x: x['LaunchTime'] < FIVE_DAYS_AGO, instances))))
+                filter(lambda x: x['LaunchTime'] < TWO_DAYS_AGO, instances))))
 
 pprint(delete_instances)
 print("\n\n\n\n")

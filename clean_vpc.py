@@ -83,7 +83,7 @@ for vpc in vpcs:
     v.findSubnets()
     v.findRouteTables()
     v.findVpcEndpoints()
-    if len(v.Instances) == 0 and vpc['VpcId'] != 'vpc-9c1924f9':
+    if len(v.Instances) == 0 :
         Vpcs.append(v)
         _vpcs.append(vpc)
 

@@ -9,6 +9,7 @@ from datetime import timezone
 
 
 FIVE_DAYS_AGO = datetime.now(timezone.utc) - timedelta(5)
+TWO_DAYS_AGO = datetime.now(timezone.utc) - timedelta(2)
 
 def aggregate_region_resources(func):
     client = boto3.client('ec2')
