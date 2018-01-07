@@ -5,7 +5,6 @@ import boto3
 
 import functions
 from functions import aggregate_region_resources
-from functions import get_resource
 from functions import TWO_DAYS_AGO
 
 

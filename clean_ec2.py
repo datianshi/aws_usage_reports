@@ -39,7 +39,7 @@ delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
 
 pprint(delete_instances)
 print("\n\n\n\n")
-print("These are the instances more than 5 days. But not going to delete them, because people tag them with do_not_delete:")
+print("These are the instances more than 2 days. But not going to delete them, because people tag them with do_not_delete:")
 
 
 
@@ -49,7 +49,7 @@ not_delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
                                            'Region': x['Region'],
                                            'LaunchTime': x['LaunchTime']},
                                 filter(do_not_delete,
-                                       filter(lambda x: x['LaunchTime'] < FIVE_DAYS_AGO, instances))))
+                                       filter(lambda x: x['LaunchTime'] < TWO_DAYS_AGO, instances))))
 
 pprint(not_delete_instances)
 
