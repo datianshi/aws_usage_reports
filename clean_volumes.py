@@ -31,7 +31,7 @@ pprint("There are {} disks will be deleted and this will release {} GB".format(l
 def delete_volume(client, volume):
     client.delete_volume(
         VolumeId=volume['VolumeId'],
-        DryRun=True
+        DryRun=False
     )
 
 functions.clean_region_resources('ec2', delete_volumes, delete_volume)

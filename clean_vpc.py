@@ -18,7 +18,8 @@ class Vpc(object):
     def findElbs(self, elbs):
         self.Elbs = list(filter(lambda x: x['VPCId'] == self.VpcId, elbs))
     def findInstances(self, instances):
-        self.Instances = list(filter(lambda x: x['VpcId'] == self.VpcId, instances))
+        self.Instances = list(filter(lambda x: x.get('VpcId', '')  == self.VpcId, instances))
+
     def findInternetGateways(self, internetGateways):
         self.InternetGateways = list(filter(lambda x: len(x['Attachments']) > 0 and x['Attachments'][0]['VpcId'] == self.VpcId, internetGateways))
     def findSecurityGroups(self):

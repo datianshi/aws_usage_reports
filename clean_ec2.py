@@ -30,7 +30,7 @@ def should_delete(instance):
 
 print("These instances will be deleted. Since they expired and no do_not_delete tag")
 delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
-                    'KeyName': x['KeyName'],
+                    'KeyName': x.get('KeyName', ''),
                     'Tags': x.get('Tags', []),
                     'Region': x['Region'],
                     'LaunchTime': x['LaunchTime']},
