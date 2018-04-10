@@ -1,12 +1,15 @@
 from pprint import pprint
 
 import boto3
+import botocore
 from functions import aggregate_region_resources
 from functions import resources_per_vpc
+from functions import resources_per_resource
 from functions import get_instances
 from functions import get_internet_gateways
 from functions import clean_region_resources
 from functions import get_resource
+
 
 client = boto3.client('ec2')
 
@@ -37,6 +40,13 @@ class Vpc(object):
             )
             return list(map(lambda x: {'SubnetId': x['SubnetId'], 'Region': self.Region}, subnets['Subnets']))
         self.Subnets = resources_per_vpc(self.VpcId, self.Region, find_subnets)
+    def findFlowLogs(self):
+        def find_flow_logs(client, filters):
+            flow_logs=client.describe_flow_logs(
+                Filters= filters
+            )
+            return list(map(lambda x: {'FlowLogId': x['FlowLogId'], 'Region': self.Region}, flow_logs['FlowLogs']))
+        self.VpcFlowLogs = resources_per_resource(self.VpcId, self.Region, find_flow_logs)
     def findVpcEndpoints(self):
         def find_vpc_endpoints(client, filters):
             vpc_endpoints=client.describe_vpc_endpoints(
@@ -50,7 +60,7 @@ class Vpc(object):
                 Filters= filters
             )
             return list(map(lambda x: {'RouteTableId': x['RouteTableId'], 'Region': self.Region},
-                            filter(lambda x: x['Associations'][0]['Main'] == False, subnets['RouteTables'])))
+                            filter(lambda x: len(x['Associations']) > 0 and x['Associations'][0]['Main'] == False, subnets['RouteTables'])))
         self.RouteTables = resources_per_vpc(self.VpcId, self.Region, find_route_tables)
 
 def get_vpcs(client):
@@ -84,6 +94,7 @@ for vpc in vpcs:
     v.findSubnets()
     v.findRouteTables()
     v.findVpcEndpoints()
+    v.findFlowLogs()
     if len(v.Instances) == 0 :
         Vpcs.append(v)
         _vpcs.append(vpc)
@@ -118,7 +129,51 @@ def delete_internet_gateway(client, gateway):
     )
 
 def delete_security_group(client, security_group):
+
+    sg = client.describe_security_groups(
+        Filters = [
+            {
+                'Name' : 'group-id',
+                'Values': [
+                    security_group['GroupId']
+                ]
+            }
+        ]
+    )
+
+    # Clean the references to another security group
+    if len(sg['SecurityGroups']) != 0:
+        delete_sg_rules = list(filter(lambda x : len(x['UserIdGroupPairs']) > 0, sg['SecurityGroups'][0]['IpPermissions']))
+        if len(delete_sg_rules) > 0 :
+            pprint(delete_sg_rules)
+            client.revoke_security_group_ingress(
+                GroupId=security_group['GroupId'],
+                IpPermissions=delete_sg_rules
+            )
+
+    sgp_references = client.describe_security_groups(
+        Filters=[
+            {
+                'Name': 'ip-permission.group-id',
+                'Values': [
+                    security_group['GroupId'],
+                ]
+            },
+        ]
+    )
+
+    # Recursive to handle the circular dependencies
+    if len(sgp_references) == 0:
+        return
+    else:
+        for sgp in sgp_references['SecurityGroups']:
+            try:
+                delete_security_group(client, sgp)
+            except botocore.exceptions.ClientError as e:
+                   pprint(e.response)
+
     print("delete security group: {}".format(security_group['GroupId']))
+
     client.delete_security_group(
         GroupId=security_group['GroupId'],
         DryRun=False
@@ -140,12 +195,44 @@ def delete_vpc_endpoints(client, vpc_endpoint):
         ]
     )
 
+def delete_vpc_flowlogs(client, vpc_flow_log):
+    print("delete vpc flow log: {}".format(vpc_flow_log['FlowLogId']))
+    client.delete_flow_logs(
+        FlowLogIds=[
+            vpc_flow_log['FlowLogId']
+        ]
+    )
+
 def delete_subnets(client, subnet):
     print("delete subnet: {}".format(subnet['SubnetId']))
     client.delete_subnet(
         SubnetId=subnet['SubnetId'],
         DryRun=False
     )
+
+#Clean Region Elastic IPs
+
+def get_addresses(region):
+    addresses=[]
+    client = boto3.client('ec2', region_name=region)
+    response = client.describe_addresses()
+
+    for i in response['Addresses']:
+        if i.get('AssociationId', None) == None:
+            i['Region'] = region
+            addresses.append(i)
+    return addresses
+
+eips = aggregate_region_resources(get_addresses)
+
+def delete_eip(client, eip):
+    print("delete eip: {}".format(eip['PublicIp']))
+    client.release_address(
+        AllocationId=eip['AllocationId'],
+        DryRun=False
+    )
+
+clean_region_resources("ec2", eips, delete_eip)
 
 for vpc in Vpcs:
     print(vpc.VpcId)
@@ -162,10 +249,12 @@ for vpc in Vpcs:
 
 pprint("delete {} vpcs".format(len(Vpcs)))
 
+
 for vpc in Vpcs:
     clean_region_resources("elb", vpc.Elbs, delete_load_balancer)
     clean_region_resources("ec2", vpc.InternetGateways, detach_internet_gateway)
     clean_region_resources("ec2", vpc.InternetGateways, delete_internet_gateway)
+    clean_region_resources("ec2", vpc.VpcFlowLogs, delete_vpc_flowlogs)
     clean_region_resources("ec2", vpc.SecurityGroups, delete_security_group)
     clean_region_resources("ec2", vpc.Subnets, delete_subnets)
     clean_region_resources("ec2", vpc.RouteTables, delete_route_table)

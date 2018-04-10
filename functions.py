@@ -33,6 +33,17 @@ def resources_per_vpc(vpcId, region, func):
     client = boto3.client('ec2', region_name=region)
     return func(client, filters)
 
+def resources_per_resource(vpcId, region, func):
+    filters=[
+        {
+            'Name': 'resource-id',
+            'Values': [vpcId]
+        }
+
+    ]
+    client = boto3.client('ec2', region_name=region)
+    return func(client, filters)
+
 def get_instances(region):
     instances=[]
     client = boto3.client('ec2', region_name=region)
