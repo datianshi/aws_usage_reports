@@ -1,0 +1,17 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: datianshi/utilities
+
+inputs:
+  - name: clean-aws-resources
+
+run:
+  path: bbr-pipeline-tasks-repo/tasks/clean_up.sh
+
+params:
+  AWS_ACCESS_KEY_ID:
+  AWS_SECRET_ACCESS_KEY:
+  AWS_DEFAULT_REGION:  

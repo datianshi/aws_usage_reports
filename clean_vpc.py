@@ -163,9 +163,9 @@ def delete_security_group(client, security_group):
     )
 
     # Recursive to handle the circular dependencies
-    if len(sgp_references) == 0:
-        return
-    else:
+    if len(sgp_references) > 0:
+        print("the references for {}".format(format(security_group['GroupId'])))
+        pprint(sgp_references)
         for sgp in sgp_references['SecurityGroups']:
             try:
                 delete_security_group(client, sgp)

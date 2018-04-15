@@ -1,0 +1,20 @@
+jobs:
+- name: clean-aws-resources
+  serial: true
+  plan:
+  - aggregate:
+    - get: clean-aws-resources
+      trigger: false
+  - task: clean-aws-resources
+    file: clean-aws-resources/tasks/task.yml
+    params:
+      AWS_ACCESS_KEY_ID: ((aws_access_key_id))
+      AWS_SECRET_ACCESS_KEY: ((aws_secret_access_key))
+      AWS_DEFAULT_REGION: us-west-2
+
+resources:
+- name: clean-aws-resources
+  type: git
+  source:
+    uri: https://github.com/datianshi/aws_usage_reports
+    branch: master

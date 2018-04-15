@@ -2,3 +2,4 @@
 __pycache__
 aws_usage_reports.iml
 .python-version
+secrets.yml
