@@ -107,6 +107,17 @@ def delete_load_balancer(client, load_balancer):
 
 def delete_vpc(client, vpc):
     print("delete vpc: {}".format(vpc))
+    client.associate_dhcp_options(
+        DhcpOptionsId='default',
+        VpcId=vpc['VpcId'],
+        DryRun=False
+    )
+
+    # client.delete_dhcp_options(
+    #     DhcpOptionsId=vpc['DhcpOptionsId'],
+    #     DryRun=False
+    # )
+
     client.delete_vpc(
         VpcId=vpc['VpcId'],
         DryRun=False
@@ -163,7 +174,9 @@ def delete_security_group(client, security_group):
     )
 
     # Recursive to handle the circular dependencies
-    if len(sgp_references) > 0:
+    if len(sgp_references['SecurityGroups']) == 0:
+        return
+    else:
         print("the references for {}".format(format(security_group['GroupId'])))
         pprint(sgp_references)
         for sgp in sgp_references['SecurityGroups']:
