@@ -3,8 +3,8 @@ from pprint import pprint
 import boto3
 
 region = 'us-east-1'
-client = boto3.client('elb', region_name=region)
-response = client.describe_load_balancers()
-pprint(response)
-result = list(map(lambda x: {'LoadBalancerName': x['LoadBalancerName'], 'VPCId': x['VPCId'], 'Region': region}, response['LoadBalancerDescriptions']))
-pprint(result)
+client = boto3.client('ec2', region_name=region)
+client.delete_vpc(
+    VpcId='vpc-29f68252',
+    DryRun=False
+)

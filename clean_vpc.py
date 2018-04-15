@@ -141,6 +141,8 @@ def delete_internet_gateway(client, gateway):
 
 def delete_security_group(client, security_group):
 
+    print("delete security group: {}".format(security_group['GroupId']))
+
     sg = client.describe_security_groups(
         Filters = [
             {
@@ -175,6 +177,9 @@ def delete_security_group(client, security_group):
 
     # Recursive to handle the circular dependencies
     if len(sgp_references['SecurityGroups']) == 0:
+        client.delete_security_group(
+            GroupId=security_group['GroupId'],
+        )
         return
     else:
         print("the references for {}".format(format(security_group['GroupId'])))
@@ -184,8 +189,7 @@ def delete_security_group(client, security_group):
                 delete_security_group(client, sgp)
             except botocore.exceptions.ClientError as e:
                    pprint(e.response)
-
-    print("delete security group: {}".format(security_group['GroupId']))
+            return
 
     try:
         delete_security_group(client, security_group)

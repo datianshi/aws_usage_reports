@@ -5,6 +5,8 @@ jobs:
   - aggregate:
     - get: clean-aws-resources
       trigger: false
+    - get: 6h
+      trigger: true
   - task: clean-aws-resources
     file: clean-aws-resources/tasks/task.yml
     params:
@@ -18,3 +20,6 @@ resources:
   source:
     uri: https://github.com/datianshi/aws_usage_reports
     branch: master
+- name: 6h
+  type: time
+  source: {interval: 6h}
