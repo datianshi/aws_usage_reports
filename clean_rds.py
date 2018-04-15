@@ -37,7 +37,7 @@ delete_instances = list(map(lambda x: {'DBInstanceIdentifier': x['DBInstanceIden
 
 pprint(delete_instances)
 print("\n\n\n\n")
-print("These are the instances more than 2 days. But not going to delete them, because people tag them with do_not_delete:")
+print("These are the rds instances more than 2 days. But not going to delete them, because people tag them with do_not_delete:")
 
 
 
@@ -51,7 +51,7 @@ not_delete_instances = list(map(lambda x: {'DBInstanceIdentifier': x['DBInstance
 pprint(not_delete_instances)
 
 
-print("Terminating instances.................:")
+print("Terminating rds instances.................:")
 
 
 for instance in delete_instances:

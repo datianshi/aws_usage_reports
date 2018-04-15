@@ -39,7 +39,7 @@ delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
 
 pprint(delete_instances)
 print("\n\n\n\n")
-print("These are the instances more than 2 days. But not going to delete them, because people tag them with do_not_delete:")
+print("These are the ec2 instances more than 2 days. But not going to delete them, because people tag them with do_not_delete:")
 
 
 
@@ -54,7 +54,7 @@ not_delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
 pprint(not_delete_instances)
 
 
-print("Terminating instances.................:")
+print("Terminating ec2 instances.................:")
 
 
 for instance in delete_instances:
