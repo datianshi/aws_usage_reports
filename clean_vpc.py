@@ -174,10 +174,11 @@ def delete_security_group(client, security_group):
 
     print("delete security group: {}".format(security_group['GroupId']))
 
-    client.delete_security_group(
-        GroupId=security_group['GroupId'],
-        DryRun=False
-    )
+    try:
+        delete_security_group(client, security_group)
+    except botocore.exceptions.ClientError as e:
+        pprint(e.response)
+
 
 def delete_route_table(client, route_table):
     print("delete route table: {}".format(route_table['RouteTableId']))
