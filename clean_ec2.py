@@ -44,7 +44,7 @@ print("These are the ec2 instances more than 2 days. But not going to delete the
 
 
 not_delete_instances = list(map(lambda x: {'InstanceId': x['InstanceId'],
-                                           'KeyName': x['KeyName'],
+                                           'KeyName': x.get('KeyName', ''),
                                            'Tags': x.get('Tags', []),
                                            'Region': x['Region'],
                                            'LaunchTime': x['LaunchTime']},
