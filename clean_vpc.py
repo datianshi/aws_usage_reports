@@ -75,9 +75,9 @@ addresses=list(aggregate_region_resources(get_resource({'func' : get_elastic_add
 
 
 def findElb(region):
-    client = boto3.client('elb', region_name=region)
+    client = boto3.client('elbv2', region_name=region)
     response = client.describe_load_balancers()
-    return list(map(lambda x: {'LoadBalancerName': x['LoadBalancerName'], 'VPCId': x['VPCId'], 'Region': region}, response['LoadBalancerDescriptions']))
+    return list(map(lambda x: {'LoadBalancerName': x['LoadBalancerName'], 'VPCId': x['VpcId'], 'Region': region, 'LoadBalancerArn': x['LoadBalancerArn']}, response['LoadBalancers']))
 
 elbs = aggregate_region_resources(findElb)
 instances = aggregate_region_resources(get_instances)
@@ -102,7 +102,7 @@ for vpc in vpcs:
 def delete_load_balancer(client, load_balancer):
     print("clean load balancer: {}".format(load_balancer))
     client.delete_load_balancer(
-        LoadBalancerName=load_balancer['LoadBalancerName']
+        LoadBalancerArn=load_balancer['LoadBalancerArn']
     )
 
 def delete_vpc(client, vpc):
@@ -177,9 +177,12 @@ def delete_security_group(client, security_group):
 
     # Recursive to handle the circular dependencies
     if len(sgp_references['SecurityGroups']) == 0:
-        client.delete_security_group(
-            GroupId=security_group['GroupId'],
-        )
+        try:
+            client.delete_security_group(
+                GroupId=security_group['GroupId'],
+            )
+        except botocore.exceptions.ClientError as e:
+            pprint(e.response)
         return
     else:
         print("the references for {}".format(format(security_group['GroupId'])))
@@ -188,7 +191,7 @@ def delete_security_group(client, security_group):
             try:
                 delete_security_group(client, sgp)
             except botocore.exceptions.ClientError as e:
-                   pprint(e.response)
+                pprint(e.response)
             return
 
     try:
@@ -269,7 +272,7 @@ pprint("delete {} vpcs".format(len(Vpcs)))
 
 
 for vpc in Vpcs:
-    clean_region_resources("elb", vpc.Elbs, delete_load_balancer)
+    clean_region_resources("elbv2", vpc.Elbs, delete_load_balancer)
     clean_region_resources("ec2", vpc.InternetGateways, detach_internet_gateway)
     clean_region_resources("ec2", vpc.InternetGateways, delete_internet_gateway)
     clean_region_resources("ec2", vpc.VpcFlowLogs, delete_vpc_flowlogs)
