@@ -11,6 +11,8 @@ def get_db_instances(region):
     response = client.describe_db_instances()
 
     for instance in response['DBInstances']:
+        response = client.list_tags_for_resource( ResourceName=instance['DBInstanceArn'] )
+        instance['Tags'] = response['TagList']
         instance['Region'] = region
         instances.append(instance)
     return instances
